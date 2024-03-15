@@ -21,13 +21,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,7 +44,7 @@ class MainActivity : ComponentActivity() {
         public fun newIntent(context: Context): Intent = Intent(context.applicationContext, MainActivity::class.java)
     }
 
-    private val viewModel: MainViewModel by viewModels<MainViewModel>()
+    private val viewModel : MainViewModel by viewModels<MainViewModel>()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController: NavHostController = rememberNavController()
             val coroutineScope = rememberCoroutineScope()
+            val selectedTabIndex : Int by viewModel.observeSelectedIndex().observeAsState(0)
             SiWikaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -71,16 +73,16 @@ class MainActivity : ComponentActivity() {
                             NavigationBar {
                                 viewModel.tabBarItems.forEachIndexed { index, tabBarItem ->
                                     NavigationBarItem(
-                                        selected = viewModel.isSelectedIndex(index),
+                                        selected = selectedTabIndex == index,
                                         onClick = {
                                             coroutineScope.launch {
-                                                viewModel.selectedTabIndex = index
+                                                viewModel.setSelectedIndex(index)
                                                 navController.navigate(tabBarItem.title)
                                             }
                                         },
                                         icon = {
                                             TabBarIconView(
-                                                isSelected = viewModel.isSelectedIndex(index),
+                                                isSelected = selectedTabIndex == index,
                                                 selectedIcon = tabBarItem.selectedIcon,
                                                 unselectedIcon = tabBarItem.unselectedIcon,
                                                 title = tabBarItem.title,
