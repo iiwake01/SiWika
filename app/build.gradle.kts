@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.multidex:multidex:2.0.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     //endregion
     //region Android X Jetpack Compose
     implementation("androidx.activity:activity-compose:1.8.2")

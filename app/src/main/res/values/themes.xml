@@ -2,4 +2,14 @@
 <resources>
 
     <style name="Theme.SiWika" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/purple_700</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/inset_splash</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/Theme.SiWika</item>
+        <!-- Status bar and Nav bar configs -->
+        <item name="android:statusBarColor" >@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
+    </style>
 </resources>
