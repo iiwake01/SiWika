@@ -20,6 +20,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -50,15 +51,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val navController: NavHostController = rememberNavController()
-            val coroutineScope = rememberCoroutineScope()
-            val selectedTabIndex : Int by viewModel.observeSelectedIndex().observeAsState(0)
+            val navController : NavHostController = rememberNavController()
             SiWikaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold(
+                    Scaffold (
+                        topBar = {
+                            TopBarComposable()
+                        },
                         content = { paddingValues: PaddingValues ->
                             Surface(
                                 modifier = Modifier
@@ -70,29 +72,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
-                            NavigationBar {
-                                viewModel.tabBarItems.forEachIndexed { index, tabBarItem ->
-                                    NavigationBarItem(
-                                        selected = selectedTabIndex == index,
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                viewModel.setSelectedIndex(index)
-                                                navController.navigate(tabBarItem.title)
-                                            }
-                                        },
-                                        icon = {
-                                            TabBarIconView(
-                                                isSelected = selectedTabIndex == index,
-                                                selectedIcon = tabBarItem.selectedIcon,
-                                                unselectedIcon = tabBarItem.unselectedIcon,
-                                                title = tabBarItem.title,
-                                                badgeAmount = tabBarItem.badgeAmount
-                                            )
-                                        },
-                                        label = { Text(tabBarItem.title) }
-                                    )
-                                }
-                            }
+                            BottomBarComposable(navController)
                         }
                     )
                 }
@@ -102,34 +82,16 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun TabBarIconView (
-        isSelected : Boolean, selectedIcon : ImageVector, unselectedIcon : ImageVector, title : String, badgeAmount : Int? = null
-    ) {
-        BadgedBox(badge = { TabBarBadgeView(badgeAmount) }) {
-            Icon(
-                imageVector = if (isSelected) {
-                    selectedIcon
-                } else {
-                    unselectedIcon
-                },
-                contentDescription = title
-            )
-        }
+    private fun TopBarComposable() {
+        val selectedTitle : String by viewModel.observeTitle().observeAsState("")
+        TopAppBar (
+            title = { Text(text = selectedTitle) }
+        )
     }
 
     @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
-    private fun TabBarBadgeView(count: Int? = null) {
-        if (count != null) {
-            Badge {
-                Text(count.toString())
-            }
-        }
-    }
-
-    @Composable
-    private fun NavHostComposable(navController: NavHostController) {
-        NavHost(
+    private fun NavHostComposable(navController : NavHostController) {
+        NavHost (
             navController = navController,
             startDestination = stringResource(id = R.string.camera)
         ) {
@@ -151,7 +113,7 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "${stringResource(id = R.string.home)}",
+                        text = stringResource(id = R.string.home),
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -163,10 +125,66 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "${stringResource(id = R.string.about)}",
+                        text = stringResource(id = R.string.about),
                         textAlign = TextAlign.Center,
                     )
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun BottomBarComposable(navController : NavHostController) {
+        val coroutineScope = rememberCoroutineScope()
+        val selectedTabIndex : Int by viewModel.observeSelectedBottomBarIndex().observeAsState(0)
+        NavigationBar {
+            viewModel.tabBarItems.forEachIndexed { index, tabBarItem ->
+                NavigationBarItem (
+                    selected = selectedTabIndex == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.setSelectedIndex(index)
+                            navController.navigate(tabBarItem.title)
+                        }
+                    },
+                    icon = {
+                        TabBarIconView(
+                            isSelected = selectedTabIndex == index,
+                            selectedIcon = tabBarItem.selectedIcon,
+                            unselectedIcon = tabBarItem.unselectedIcon,
+                            title = tabBarItem.title,
+                            badgeAmount = tabBarItem.badgeAmount
+                        )
+                    },
+                    label = { Text(tabBarItem.title) }
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun TabBarIconView (
+        isSelected : Boolean, selectedIcon : ImageVector, unselectedIcon : ImageVector, title : String, badgeAmount : Int? = null
+    ) {
+        BadgedBox(badge = { TabBarBadgeView(badgeAmount) }) {
+            Icon (
+                imageVector = if (isSelected) {
+                    selectedIcon
+                } else {
+                    unselectedIcon
+                },
+                contentDescription = title
+            )
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    private fun TabBarBadgeView(count : Int? = null) {
+        if (count != null) {
+            Badge {
+                Text(count.toString())
             }
         }
     }
