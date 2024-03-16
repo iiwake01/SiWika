@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">SiWika</string>
+    <string name="abc">ABC</string>
     <string name="about">About</string>
+    <string name="about_the_app">About the App</string>
+    <string name="about_the_deaf_community">About the Deaf Community</string>
     <string name="camera">Camera</string>
+    <string name="emoticons">Emoticons</string>
+    <string name="greetings">Greetings</string>
     <string name="home">Home</string>
     <string name="setting">Setting</string>
     <string name="translator">Translator</string>

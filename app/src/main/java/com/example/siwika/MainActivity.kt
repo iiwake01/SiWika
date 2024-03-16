@@ -6,9 +6,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -27,9 +34,12 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -95,7 +105,7 @@ class MainActivity : ComponentActivity() {
             navController = navController,
             startDestination = stringResource(id = R.string.camera)
         ) {
-            composable(route = viewModel.getCameraTitle()) { backStackEntry: NavBackStackEntry ->
+            composable(route = viewModel.getCameraTitle()) { backStackEntry : NavBackStackEntry ->
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -106,28 +116,94 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-            composable(route = viewModel.getHomeTitle()) { backStackEntry: NavBackStackEntry ->
-                val content = backStackEntry.arguments?.getString(Constants.KEY_CONTENT)
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+            composable(route = viewModel.getHomeTitle()) { backStackEntry : NavBackStackEntry ->
+                Column (
+                    modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(13.dp), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.home),
-                        textAlign = TextAlign.Center,
-                    )
+                    Box (
+                        modifier = Modifier.fillMaxWidth()
+                            .aspectRatio(1f/0.25f)
+                            .padding(horizontal = 5.dp)
+                            .border(2.dp, Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text (
+                            text = stringResource(id = R.string.abc),
+                        )
+                    }
+                    Box (
+                        modifier = Modifier.fillMaxWidth()
+                            .aspectRatio(1f/0.25f)
+                            .padding(horizontal = 5.dp)
+                            .border(2.dp, Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row (
+                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_waving_hand),
+                                contentDescription = null,
+                            )
+                            Text (
+                                text = stringResource(id = R.string.greetings),
+                            )
+                        }
+                    }
+                    Box (
+                        modifier = Modifier.fillMaxWidth()
+                            .aspectRatio(1f/0.25f)
+                            .padding(horizontal = 5.dp)
+                            .border(2.dp, Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row (
+                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_emoji_emotions),
+                                contentDescription = null,
+                            )
+                            Text (
+                                text = stringResource(id = R.string.emoticons),
+                            )
+                        }
+                    }
+                    Box (
+                        modifier = Modifier.fillMaxWidth()
+                            .aspectRatio(1f/0.25f)
+                            .padding(horizontal = 5.dp)
+                            .border(2.dp, Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row() {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_edit),
+                                contentDescription = null,
+                            )
+                            Text (
+                                text = stringResource(id = R.string.about_the_deaf_community),
+                            )
+                        }
+                    }
                 }
             }
-            composable(route = viewModel.getAboutTitle()) { backStackEntry: NavBackStackEntry ->
-                val content = backStackEntry.arguments?.getString(Constants.KEY_CONTENT)
-                Box(
+            composable(route = viewModel.getAboutTitle()) { backStackEntry : NavBackStackEntry ->
+                Box (
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.about),
-                        textAlign = TextAlign.Center,
-                    )
+                    Box (
+                        modifier = Modifier.fillMaxWidth()
+                            .aspectRatio(1f/0.25f)
+                            .padding(horizontal = 5.dp)
+                            .border(2.dp, Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text (
+                            text = stringResource(id = R.string.about_the_app),
+                        )
+                    }
                 }
             }
         }
