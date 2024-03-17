@@ -1,6 +1,7 @@
 package com.example.siwika
 
 import android.app.Application
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Home
@@ -25,18 +26,20 @@ class MainViewModel : AndroidViewModel {
     public val tabBarItems : List<NavigationBarModel>
     private var liveSelectedBottomBarTabIndex : MutableLiveData<Int>
     private var liveTopBarTitle : MutableLiveData<String>
+    private var liveCameraGranted : MutableLiveData<Boolean>
 
     constructor(application : Application) : super(application) {
         keepSplashAlive = true
-        cameraTab = NavigationBarModel(title = getCameraTitle(), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox, badgeAmount = 13)
+        cameraTab = NavigationBarModel(title = getCameraTitle(), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox/*, badgeAmount = 13*/)
         homeTab = NavigationBarModel(title = getHomeTitle(), selectedIcon = Icons.Filled.Home, unselectedIcon = Icons.Outlined.Home)
         aboutTab = NavigationBarModel(title = getAboutTitle(), selectedIcon = Icons.Filled.List, unselectedIcon = Icons.Outlined.List)
         tabBarItems = listOf(cameraTab, homeTab, aboutTab)
         liveSelectedBottomBarTabIndex = MutableLiveData<Int>(0)
         liveTopBarTitle = MutableLiveData<String>(getApplication<Application>().getString(R.string.translator))
         keepSplashAlive = false
+        liveCameraGranted = MutableLiveData<Boolean>()
     }
-
+    //region TopAppBar Title
     public fun getCameraTitle() : String {
         return getApplication<Application>().getString(R.string.camera)
     }
@@ -52,7 +55,8 @@ class MainViewModel : AndroidViewModel {
     public fun observeTitle() : LiveData<String> {
         return liveTopBarTitle
     }
-
+    //endregion
+    //region NavigationBar Index
     public fun setSelectedIndex(index : Int) {
         liveSelectedBottomBarTabIndex.setValue(index)
         if (index == 0) {
@@ -66,6 +70,32 @@ class MainViewModel : AndroidViewModel {
 
     public fun observeSelectedBottomBarIndex() : LiveData<Int> {
         return liveSelectedBottomBarTabIndex
+    }
+    //endregion
+    public fun checkCameraPermission(permissionResultResultLauncher : ActivityResultLauncher<String>,) {
+        ManifestPermission.checkSelfPermission (
+            getApplication<Application>(),
+            ManifestPermission.cameraPermission,
+            isGranted = {
+                grantedCameraPermission()
+            },
+            isDenied = {
+                deniedCameraPermission()
+                ManifestPermission.requestPermission(permissionResultResultLauncher, ManifestPermission.cameraPermission,)
+            }
+        )
+    }
+
+    public fun grantedCameraPermission() {
+        liveCameraGranted.setValue(true)
+    }
+
+    public fun deniedCameraPermission() {
+        liveCameraGranted.setValue(false)
+    }
+
+    public fun observeCameraPermission() : LiveData<Boolean> {
+        return liveCameraGranted
     }
 
     override fun onCleared() {

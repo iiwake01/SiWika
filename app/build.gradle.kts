@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
     //endregion
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
     //region Android X Jetpack Compose
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
@@ -68,8 +69,22 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.6.3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     //endregion
+    //region CameraX Library
+    implementation("androidx.camera:camera-camera2:1.3.2")
+    //implementation("androidx.camera:camera-core:1.3.2")
+    //implementation("androidx.camera:camera-extensions:1.3.2")
+    implementation("androidx.camera:camera-lifecycle:1.3.2")
+    //implementation("androidx.camera:camera-video:1.3.2")
+    implementation("androidx.camera:camera-view:1.3.2")
+    //endregion
+    //region Text Recognition
+    implementation("com.google.mlkit:vision-common:17.3.0")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    //implementation("androidx.compose.material3:material3-android:1.2.1")
+    //endregion
     //region Android Unit Test and U.I. Test Library
-    testImplementation("junit:junit:4.14-SNAPSHOT")
+    //testImplementation("junit:junit:4.14-SNAPSHOT")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

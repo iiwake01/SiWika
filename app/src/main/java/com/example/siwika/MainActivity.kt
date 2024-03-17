@@ -3,9 +3,16 @@ package com.example.siwika
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.view.LifecycleCameraController
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,15 +38,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -108,14 +119,20 @@ class MainActivity : ComponentActivity() {
             startDestination = stringResource(id = R.string.camera)
         ) {
             composable(route = viewModel.getCameraTitle()) { backStackEntry : NavBackStackEntry ->
-                Box(
-                    modifier = Modifier.fillMaxSize(),
+                Box (
+                    modifier = Modifier.fillMaxSize().border(2.dp, Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.camera),
-                        textAlign = TextAlign.Center,
-                    )
+                    viewModel.checkCameraPermission(requestPermissionLauncher )
+                    val isGranted : Boolean by viewModel.observeCameraPermission().observeAsState(false)
+                    if (isGranted) {
+                        CameraComposable()
+                    } else {
+                        Text(
+                            text = "Camera Not Granted",
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
             composable(route = viewModel.getHomeTitle()) { backStackEntry : NavBackStackEntry ->
@@ -264,6 +281,97 @@ class MainActivity : ComponentActivity() {
             Badge {
                 Text(count.toString())
             }
+        }
+    }
+
+    @androidx.annotation.OptIn(ExperimentalGetImage::class)
+    @Composable
+    private fun CameraComposable() {
+        val context : Context = LocalContext.current
+        val previewView : PreviewView = remember { PreviewView(context) }
+        val cameraController = remember { LifecycleCameraController(context) }
+        val lifecycleOwner = LocalLifecycleOwner.current
+        cameraController.bindToLifecycle(lifecycleOwner)
+        cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+        previewView.controller = cameraController
+        //val executor = remember { Executors.newSingleThreadExecutor() }
+        //val textRecognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+
+        //var text by rememberSaveable { mutableStateOf("") }
+        //var isLoading by remember { mutableStateOf(false) }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+            /*
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .align(Alignment.Center)
+                )
+            } else {
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    onClick = {
+                        isLoading = true
+                        cameraController.setImageAnalysisAnalyzer(executor) { imageProxy ->
+                            imageProxy.image?.let { image ->
+                                val img = InputImage.fromMediaImage(
+                                    image,
+                                    imageProxy.imageInfo.rotationDegrees
+                                )
+
+                                textRecognizer.process(img).addOnCompleteListener { task ->
+                                    isLoading = false
+                                    text = if (!task.isSuccessful) task.exception!!.localizedMessage.toString()
+                                    else task.result.text
+
+                                    cameraController.clearImageAnalysisAnalyzer()
+                                    imageProxy.close()
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_camera_24),
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(54.dp)
+                    )
+                }
+            }
+            */
+        }
+        /*
+        if (text.isNotEmpty()) {
+            Dialog(onDismissRequest = { text = "" }) {
+                Card(modifier = Modifier.fillMaxWidth(0.8f)) {
+                    Text(
+                        text = text,
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Button(
+                        onClick = { text = "" },
+                        modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp, vertical = 16.dp)
+                    ) {
+                        Text(text = "Done")
+                    }
+                }
+            }
+        }
+        */
+    }
+
+    private val requestPermissionLauncher : ActivityResultLauncher<String> = registerForActivityResult( ActivityResultContracts.RequestPermission(),) { isGranted ->
+        Log.d("PERMISSIONS", "Launcher result: " + isGranted.toString())
+        if (isGranted) {
+            viewModel.grantedCameraPermission()
+        } else {
+            viewModel.deniedCameraPermission()
         }
     }
 }
