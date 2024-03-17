@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -120,7 +121,9 @@ class MainActivity : ComponentActivity() {
         ) {
             composable(route = viewModel.getCameraTitle()) { backStackEntry : NavBackStackEntry ->
                 Box (
-                    modifier = Modifier.fillMaxSize().border(2.dp, Color.Black),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(2.dp, Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
                     viewModel.checkCameraPermission(requestPermissionLauncher )
@@ -129,7 +132,7 @@ class MainActivity : ComponentActivity() {
                         CameraComposable()
                     } else {
                         Text(
-                            text = "Camera Not Granted",
+                            text = stringResource(id = R.string.camera_not_granted),
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -140,28 +143,32 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(13.dp), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box (
-                        modifier = Modifier.fillMaxWidth()
-                            .aspectRatio(1f/0.25f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f / 0.25f)
                             .padding(horizontal = 5.dp)
                             .border(2.dp, Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text (
-                            text = stringResource(id = R.string.abc),
+                        Image (
+                            painterResource(R.drawable.alphabet),
+                            contentDescription = null,
                         )
                     }
                     Box (
-                        modifier = Modifier.fillMaxWidth()
-                            .aspectRatio(1f/0.25f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f / 0.25f)
                             .padding(horizontal = 5.dp)
                             .border(2.dp, Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
                         Row (
-                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_waving_hand),
+                            Image (
+                                painterResource(R.drawable.greetings),
                                 contentDescription = null,
                             )
                             Text (
@@ -170,34 +177,40 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     Box (
-                        modifier = Modifier.fillMaxWidth()
-                            .aspectRatio(1f/0.25f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f / 0.25f)
                             .padding(horizontal = 5.dp)
                             .border(2.dp, Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
                         Row (
-                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_emoji_emotions),
+                            Image (
+                                painter = painterResource(id = R.drawable.emotions),
                                 contentDescription = null,
                             )
                             Text (
-                                text = stringResource(id = R.string.emoticons),
+                                text = stringResource(id = R.string.emotions),
                             )
                         }
                     }
                     Box (
-                        modifier = Modifier.fillMaxWidth()
-                            .aspectRatio(1f/0.25f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f / 0.25f)
                             .padding(horizontal = 5.dp)
                             .border(2.dp, Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
-                        Row() {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_edit),
+                        Row (
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Image (
+                                painter = painterResource(id = R.drawable.about),
                                 contentDescription = null,
                             )
                             Text (
@@ -213,8 +226,9 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.TopCenter
                 ) {
                     Box (
-                        modifier = Modifier.fillMaxWidth()
-                            .aspectRatio(1f/0.25f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f / 0.25f)
                             .padding(horizontal = 5.dp)
                             .border(2.dp, Color.Black),
                         contentAlignment = Alignment.Center
@@ -243,6 +257,8 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     icon = {
+                        Image(painter = painterResource(id = tabBarItem.icon), contentDescription = viewModel.getCameraTitle())
+                        /*
                         TabBarIconView(
                             isSelected = selectedTabIndex == index,
                             selectedIcon = tabBarItem.selectedIcon,
@@ -250,13 +266,14 @@ class MainActivity : ComponentActivity() {
                             title = tabBarItem.title,
                             badgeAmount = tabBarItem.badgeAmount
                         )
+                        */
                     },
-                    label = { Text(tabBarItem.title) }
+                    //label = { Text(tabBarItem.title) }
                 )
             }
         }
     }
-
+    /*
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun TabBarIconView (
@@ -283,7 +300,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
+    */
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     @Composable
     private fun CameraComposable() {
