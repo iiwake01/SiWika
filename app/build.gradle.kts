@@ -61,6 +61,7 @@ dependencies {
     //region Android X Jetpack Compose
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -78,10 +79,16 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.2")
     //endregion
     //region Text Recognition
-    implementation("com.google.mlkit:vision-common:17.3.0")
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    //implementation("com.google.mlkit:vision-common:17.3.0")
+    //implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
+    //implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     //implementation("androidx.compose.material3:material3-android:1.2.1")
+    //endregion
+    //region Tensor Flow
+    implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
+    implementation("com.google.android.gms:play-services-tflite-acceleration-service:16.0.0-beta01")
     //endregion
     //region Android Unit Test and U.I. Test Library
     //testImplementation("junit:junit:4.14-SNAPSHOT")

@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -24,10 +26,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -43,16 +43,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -60,6 +60,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.siwika.ui.theme.SiWikaTheme
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
 
@@ -306,81 +308,48 @@ class MainActivity : ComponentActivity() {
     private fun CameraComposable() {
         val context : Context = LocalContext.current
         val previewView : PreviewView = remember { PreviewView(context) }
-        val cameraController = remember { LifecycleCameraController(context) }
-        val lifecycleOwner = LocalLifecycleOwner.current
+        val cameraController : LifecycleCameraController = remember { LifecycleCameraController(context) }
+        val lifecycleOwner : LifecycleOwner = LocalLifecycleOwner.current
+        val executor : Executor = remember { Executors.newSingleThreadExecutor() }
         cameraController.bindToLifecycle(lifecycleOwner)
-        cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-        previewView.controller = cameraController
-        //val executor = remember { Executors.newSingleThreadExecutor() }
-        //val textRecognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
-
-        //var text by rememberSaveable { mutableStateOf("") }
-        //var isLoading by remember { mutableStateOf(false) }
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-            /*
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .align(Alignment.Center)
-                )
-            } else {
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
-                    onClick = {
-                        isLoading = true
-                        cameraController.setImageAnalysisAnalyzer(executor) { imageProxy ->
-                            imageProxy.image?.let { image ->
-                                val img = InputImage.fromMediaImage(
-                                    image,
-                                    imageProxy.imageInfo.rotationDegrees
-                                )
-
-                                textRecognizer.process(img).addOnCompleteListener { task ->
-                                    isLoading = false
-                                    text = if (!task.isSuccessful) task.exception!!.localizedMessage.toString()
-                                    else task.result.text
-
-                                    cameraController.clearImageAnalysisAnalyzer()
-                                    imageProxy.close()
-                                }
+        cameraController.setCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
+        previewView.setController(cameraController)
+        ConstraintLayout {
+            val (preview, button,) = createRefs()
+            Box(
+                modifier = Modifier.constrainAs(preview) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                },
+                content = {
+                    AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+                }
+            )
+            FloatingActionButton (
+                modifier = Modifier.constrainAs(button) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                },
+                onClick = {
+                    cameraController.takePicture (
+                        viewModel.getOutputFileOptions(null),
+                        executor,
+                        object : ImageCapture.OnImageSavedCallback {
+                            override fun onImageSaved(output : ImageCapture.OutputFileResults) {
+                                viewModel.convertToBitmap(output)
+                            }
+                            override fun onError(exc : ImageCaptureException) {
+                                Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                             }
                         }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_camera_24),
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(54.dp)
                     )
-                }
-            }
-            */
+                },
+                content = { Text(text = "A")}
+            )
         }
-        /*
-        if (text.isNotEmpty()) {
-            Dialog(onDismissRequest = { text = "" }) {
-                Card(modifier = Modifier.fillMaxWidth(0.8f)) {
-                    Text(
-                        text = text,
-                        modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Button(
-                        onClick = { text = "" },
-                        modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp, vertical = 16.dp)
-                    ) {
-                        Text(text = "Done")
-                    }
-                }
-            }
-        }
-        */
     }
 
     private val requestPermissionLauncher : ActivityResultLauncher<String> = registerForActivityResult( ActivityResultContracts.RequestPermission(),) { isGranted ->
