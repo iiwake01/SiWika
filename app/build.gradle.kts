@@ -47,8 +47,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        mlModelBinding = true
+    }
 }
-
 dependencies {
     //region Android X Library
     implementation("androidx.core:core-ktx:1.12.0")
@@ -84,11 +86,12 @@ dependencies {
     //implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     //implementation("androidx.compose.material3:material3-android:1.2.1")
     //endregion
+    //implementation("com.google.android.gms:play-services-tflite-acceleration-service:16.0.0-beta01")
     //region Tensor Flow
+    //implementation("org.tensorflow:tensorflow-lite:2.4.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
     implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
-    implementation("com.google.android.gms:play-services-tflite-acceleration-service:16.0.0-beta01")
     //endregion
     //region Android Unit Test and U.I. Test Library
     //testImplementation("junit:junit:4.14-SNAPSHOT")

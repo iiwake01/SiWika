@@ -12,7 +12,6 @@ import androidx.camera.core.ImageCapture
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.android.gms.tflite.acceleration.Model
 
 import com.example.siwika.ml.Model
 import org.tensorflow.lite.DataType
@@ -129,7 +128,7 @@ class MainViewModel : AndroidViewModel {
             // Runs model inference and gets result.
             val outputs : Model.Outputs = model.process(inputFeature0)
             val outputFeature0 : TensorBuffer = outputs.getOutputFeature0AsTensorBuffer()
-            // Releases model resources if no longer used.
+            // Releases model ml if no longer used.
             model.close()
             getMax(outputFeature0.getFloatArray());
             Log.d("Result", Arrays.toString(outputFeature0.getFloatArray()))
