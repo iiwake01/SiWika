@@ -47,8 +47,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        mlModelBinding = true
+    }
 }
-
 dependencies {
     //region Android X Library
     implementation("androidx.core:core-ktx:1.12.0")
@@ -61,12 +63,13 @@ dependencies {
     //region Android X Jetpack Compose
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation(platform("androidx.compose:compose-bom:2024.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.3")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.4")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     //endregion
     //region CameraX Library
@@ -78,18 +81,24 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.2")
     //endregion
     //region Text Recognition
-    implementation("com.google.mlkit:vision-common:17.3.0")
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
-    implementation("androidx.appcompat:appcompat-resources:1.6.1")
+    //implementation("com.google.mlkit:vision-common:17.3.0")
+    //implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
+    //implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     //implementation("androidx.compose.material3:material3-android:1.2.1")
+    //endregion
+    //implementation("com.google.android.gms:play-services-tflite-acceleration-service:16.0.0-beta01")
+    //region Tensor Flow
+    //implementation("org.tensorflow:tensorflow-lite:2.4.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
     //endregion
     //region Android Unit Test and U.I. Test Library
     //testImplementation("junit:junit:4.14-SNAPSHOT")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.03.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

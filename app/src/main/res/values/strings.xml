@@ -5,10 +5,12 @@
     <string name="about_the_app">About the App</string>
     <string name="about_the_deaf_community">About the Deaf Community</string>
     <string name="camera">Camera</string>
+    <string name="camerax">CameraX</string>
     <string name="camera_not_granted">"Camera Not Granted"</string>
     <string name="emotions">Emotions</string>
     <string name="greetings">Greetings</string>
     <string name="home">Home</string>
+    <string name="predict">Predict</string>
     <string name="setting">Setting</string>
     <string name="translator">Translator</string>
     <string name="your_lesson">Your Lesson</string>
