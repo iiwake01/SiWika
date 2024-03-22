@@ -311,11 +311,12 @@ class MainActivity : ComponentActivity() {
         val cameraController : LifecycleCameraController = remember { LifecycleCameraController(context) }
         val lifecycleOwner : LifecycleOwner = LocalLifecycleOwner.current
         val executor : Executor = remember { Executors.newSingleThreadExecutor() }
+        val result : String by viewModel.observeResult().observeAsState("")
         cameraController.bindToLifecycle(lifecycleOwner)
         cameraController.setCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
         previewView.setController(cameraController)
         ConstraintLayout {
-            val (preview, button,) = createRefs()
+            val (preview, text, button,) = createRefs()
             Box(
                 modifier = Modifier.constrainAs(preview) {
                     top.linkTo(parent.top)
@@ -327,6 +328,11 @@ class MainActivity : ComponentActivity() {
                     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
                 }
             )
+            Text(modifier = Modifier.constrainAs(text) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            },text = result)
             FloatingActionButton (
                 modifier = Modifier.constrainAs(button) {
                     start.linkTo(parent.start)
@@ -334,12 +340,13 @@ class MainActivity : ComponentActivity() {
                     bottom.linkTo(parent.bottom)
                 },
                 onClick = {
+                    viewModel.resetResult()
                     cameraController.takePicture (
                         viewModel.getOutputFileOptions(null),
                         executor,
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(output : ImageCapture.OutputFileResults) {
-                                viewModel.convertToBitmap(output)
+                                viewModel.predict(output)
                             }
                             override fun onError(exc : ImageCaptureException) {
                                 Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
@@ -347,7 +354,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 },
-                content = { Text(text = "A")}
+                content = { Text(text = stringResource(id = R.string.predict))}
             )
         }
     }

@@ -84,6 +84,7 @@ class MainViewModel : AndroidViewModel {
         return liveSelectedBottomBarTabIndex
     }
     //endregion
+    //region Camera Permission Methods
     public fun checkCameraPermission(permissionResultResultLauncher: ActivityResultLauncher<String>) {
         ManifestPermission.checkSelfPermission (
             getApplication<Application>(),
@@ -112,10 +113,15 @@ class MainViewModel : AndroidViewModel {
     public fun observeCameraPermission() : LiveData<Boolean> {
         return liveCameraGranted
     }
-
-    private fun predict() {
-        Log.d(TAG,"predict()")
+    //endregion
+    public fun resetResult() {
+        result.setValue("")
+    }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    public fun predict(output : ImageCapture.OutputFileResults) {
+        Log.d(TAG,"predict(${output.getSavedUri()})")
         try { Log.d(TAG,"try")
+            bitmap = BitmapFactory.decodeFile(output.getSavedUri()?.path)
             bitmap = Bitmap.createScaledBitmap(bitmap!!, 224, 224, true)
             val model : Model = Model.newInstance(getApplication<Application>())
             // Creates inputs for reference.
@@ -124,7 +130,7 @@ class MainViewModel : AndroidViewModel {
             tensorImage.load(bitmap)
             val byteBuffer : ByteBuffer = tensorImage.getBuffer()
 
-            inputFeature0.loadBuffer(byteBuffer);
+            inputFeature0.loadBuffer(byteBuffer)
             // Runs model inference and gets result.
             val outputs : Model.Outputs = model.process(inputFeature0)
             val outputFeature0 : TensorBuffer = outputs.getOutputFeature0AsTensorBuffer()
@@ -140,14 +146,18 @@ class MainViewModel : AndroidViewModel {
     private fun getMax(outputs : FloatArray) {
         Log.d(TAG, "getMax( " + Arrays.toString(outputs) + ")")
         if ((outputs.size != 0) and (outputs[0] > outputs[1]) and (outputs[0] > outputs[2]) and (outputs[0] > outputs[3])) {
-            result.setValue("Mahal kita")
+            result.postValue("Mahal kita")
         } else if ((outputs.size != 0) and (outputs[1] > outputs[0]) and (outputs[1] > outputs[2]) and (outputs[1] > outputs[3])) {
-            result.setValue("Thank you")
+            result.postValue("Thank you")
         } else if ((outputs.size != 0) and (outputs[2] > outputs[0]) and (outputs[2] > outputs[1]) and (outputs[2] > outputs[3])) {
-            result.setValue("Peace")
+            result.postValue("Peace")
         } else {
-            result.setValue("")
+            result.postValue("")
         }
+    }
+
+    public fun observeResult() : LiveData<String> {
+        return result
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -177,8 +187,7 @@ class MainViewModel : AndroidViewModel {
         return fileValue
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    public fun convertToBitmap(output : ImageCapture.OutputFileResults) {
+    private fun convertToBitmap(output : ImageCapture.OutputFileResults) {
         Log.d(TAG,"logImageSaved ${output.getSavedUri()}")
         bitmap = BitmapFactory.decodeFile(output.getSavedUri()?.path)
     }
