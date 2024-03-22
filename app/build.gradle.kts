@@ -81,6 +81,7 @@ dependencies {
     implementation("com.google.mlkit:vision-common:17.3.0")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    implementation("androidx.appcompat:appcompat-resources:1.6.1")
     //implementation("androidx.compose.material3:material3-android:1.2.1")
     //endregion
     //region Android Unit Test and U.I. Test Library

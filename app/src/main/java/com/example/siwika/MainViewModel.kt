@@ -2,18 +2,12 @@ package com.example.siwika
 
 import android.app.Application
 import androidx.activity.result.ActivityResultLauncher
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.outlined.AccountBox
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.List
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
-class MainViewModel : AndroidViewModel {
+
+class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private val TAG = MainViewModel::class.java.getSimpleName()
@@ -28,11 +22,12 @@ class MainViewModel : AndroidViewModel {
     private var liveTopBarTitle : MutableLiveData<String>
     private var liveCameraGranted : MutableLiveData<Boolean>
 
-    constructor(application : Application) : super(application) {
+    init {
         keepSplashAlive = true
         cameraTab = NavigationBarModel(title = getCameraTitle(), icon = R.drawable.camera)
-        homeTab = NavigationBarModel(title = getHomeTitle(), icon = R.drawable.home)
-        aboutTab = NavigationBarModel(title = getAboutTitle(), icon = R.drawable.about)
+        homeTab = NavigationBarModel(title = getHomeTitle(),icon = R.drawable.home,)
+        aboutTab = NavigationBarModel(title = getAboutTitle(),icon = R.drawable.about,)
+
         tabBarItems = listOf(cameraTab, homeTab, aboutTab)
         liveSelectedBottomBarTabIndex = MutableLiveData<Int>(0)
         liveTopBarTitle = MutableLiveData<String>(getApplication<Application>().getString(R.string.translator))
