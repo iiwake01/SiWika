@@ -346,6 +346,7 @@ class MainActivity : ComponentActivity() {
                         executor,
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(output : ImageCapture.OutputFileResults) {
+                                viewModel.resetResult()
                                 viewModel.predict(output)
                             }
                             override fun onError(exc : ImageCaptureException) {

@@ -12,7 +12,6 @@ import androidx.camera.core.ImageCapture
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-
 import com.example.siwika.ml.Model
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.image.TensorImage
@@ -125,8 +124,8 @@ class MainViewModel : AndroidViewModel {
             bitmap = Bitmap.createScaledBitmap(bitmap!!, 224, 224, true)
             val model : Model = Model.newInstance(getApplication<Application>())
             // Creates inputs for reference.
-            val inputFeature0 : TensorBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.UINT8)
-            val tensorImage : TensorImage = TensorImage(DataType.UINT8)
+            val inputFeature0 : TensorBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
+            val tensorImage : TensorImage = TensorImage(DataType.FLOAT32)
             tensorImage.load(bitmap)
             val byteBuffer : ByteBuffer = tensorImage.getBuffer()
 
@@ -145,11 +144,11 @@ class MainViewModel : AndroidViewModel {
 
     private fun getMax(outputs : FloatArray) {
         Log.d(TAG, "getMax( " + Arrays.toString(outputs) + ")")
-        if ((outputs.size != 0) and (outputs[0] > outputs[1]) and (outputs[0] > outputs[2]) and (outputs[0] > outputs[3])) {
+        if ((outputs.isNotEmpty()) and (outputs[0] > outputs[1]) and (outputs[0] > outputs[2])) {
             result.postValue("Mahal kita")
-        } else if ((outputs.size != 0) and (outputs[1] > outputs[0]) and (outputs[1] > outputs[2]) and (outputs[1] > outputs[3])) {
+        } else if ((outputs.isNotEmpty()) and (outputs[1] > outputs[0]) and (outputs[1] > outputs[2])) {
             result.postValue("Thank you")
-        } else if ((outputs.size != 0) and (outputs[2] > outputs[0]) and (outputs[2] > outputs[1]) and (outputs[2] > outputs[3])) {
+        } else if ((outputs.isNotEmpty()) and (outputs[2] > outputs[0]) and (outputs[2] > outputs[1])) {
             result.postValue("Peace")
         } else {
             result.postValue("")
