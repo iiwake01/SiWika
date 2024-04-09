@@ -114,7 +114,7 @@ class MainViewModel : AndroidViewModel {
     }
     //endregion
     public fun resetResult() {
-        result.setValue("")
+        result.postValue("")
     }
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     public fun predict(output : ImageCapture.OutputFileResults) {
@@ -145,11 +145,11 @@ class MainViewModel : AndroidViewModel {
     private fun getMax(outputs : FloatArray) {
         Log.d(TAG, "getMax( " + Arrays.toString(outputs) + ")")
         if ((outputs.isNotEmpty()) and (outputs[0] > outputs[1]) and (outputs[0] > outputs[2])) {
-            result.postValue("Mahal kita")
+            result.postValue("Kamusta ka")
         } else if ((outputs.isNotEmpty()) and (outputs[1] > outputs[0]) and (outputs[1] > outputs[2])) {
             result.postValue("Thank you")
         } else if ((outputs.isNotEmpty()) and (outputs[2] > outputs[0]) and (outputs[2] > outputs[1])) {
-            result.postValue("Peace")
+            result.postValue("Mahal kita")
         } else {
             result.postValue("")
         }
