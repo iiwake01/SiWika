@@ -13,14 +13,16 @@ public object ManifestPermission {
 
     val cameraPermission = Manifest.permission.CAMERA
 
-    fun checkSelfPermission(context : Context, permission : String, isGranted : () -> Unit = {}, isDenied : () -> Unit = {}) {
+    fun checkSelfPermission(context : Context, permission : String, isGranted : () -> Unit = {}, isDenied : () -> Unit = {}) : Boolean {
         Log.d(TAG,"checkSelfPermission($context,$permission, isGranted(), isDenied())")
-        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+        return if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG,"isGranted()")
             isGranted()
+            true
         } else {
             Log.d(TAG,"denied()")
             isDenied()
+            false
         }
     }
 

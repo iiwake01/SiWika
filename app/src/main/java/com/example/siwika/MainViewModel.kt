@@ -2,24 +2,10 @@ package com.example.siwika
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.os.Build
-import android.os.Environment
-import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
-import androidx.camera.core.ImageCapture
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.siwika.ml.Model
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.io.File
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.util.Arrays
 
 class MainViewModel : AndroidViewModel {
 
@@ -113,84 +99,22 @@ class MainViewModel : AndroidViewModel {
         return liveCameraGranted
     }
     //endregion
-    public fun resetResult() {
-        result.setValue("")
+    //region MP Gesture Recognizer
+    private var _delegate: Int = GestureRecognizerHelper.DELEGATE_CPU
+    private var _minHandDetectionConfidence: Float = GestureRecognizerHelper.DEFAULT_HAND_DETECTION_CONFIDENCE
+    private var _minHandTrackingConfidence: Float = GestureRecognizerHelper.DEFAULT_HAND_TRACKING_CONFIDENCE
+    private var _minHandPresenceConfidence: Float = GestureRecognizerHelper.DEFAULT_HAND_PRESENCE_CONFIDENCE
+    val currentDelegate: Int get() = _delegate
+    val currentMinHandDetectionConfidence: Float get() = _minHandDetectionConfidence
+    val currentMinHandTrackingConfidence: Float get() = _minHandTrackingConfidence
+    val currentMinHandPresenceConfidence: Float get() = _minHandPresenceConfidence
+    fun setDelegate(delegate: Int) { _delegate = delegate }
+    fun setMinHandDetectionConfidence(confidence: Float) { _minHandDetectionConfidence = confidence }
+    fun setMinHandTrackingConfidence(confidence: Float) { _minHandTrackingConfidence = confidence }
+    fun setMinHandPresenceConfidence(confidence: Float) {
+        _minHandPresenceConfidence = confidence
     }
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    public fun predict(output : ImageCapture.OutputFileResults) {
-        Log.d(TAG,"predict(${output.getSavedUri()})")
-        try { Log.d(TAG,"try")
-            bitmap = BitmapFactory.decodeFile(output.getSavedUri()?.path)
-            bitmap = Bitmap.createScaledBitmap(bitmap!!, 224, 224, true)
-            val model : Model = Model.newInstance(getApplication<Application>())
-            // Creates inputs for reference.
-            val inputFeature0 : TensorBuffer = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-            val tensorImage : TensorImage = TensorImage(DataType.FLOAT32)
-            tensorImage.load(bitmap)
-            val byteBuffer : ByteBuffer = tensorImage.getBuffer()
-
-            inputFeature0.loadBuffer(byteBuffer)
-            // Runs model inference and gets result.
-            val outputs : Model.Outputs = model.process(inputFeature0)
-            val outputFeature0 : TensorBuffer = outputs.getOutputFeature0AsTensorBuffer()
-            // Releases model ml if no longer used.
-            model.close()
-            getMax(outputFeature0.getFloatArray());
-            Log.d("Result", Arrays.toString(outputFeature0.getFloatArray()))
-        } catch (exception : IOException) {
-            Log.e(TAG,"IOException " + exception.message);
-        }
-    }
-
-    private fun getMax(outputs : FloatArray) {
-        Log.d(TAG, "getMax( " + Arrays.toString(outputs) + ")")
-        if ((outputs.isNotEmpty()) and (outputs[0] > outputs[1]) and (outputs[0] > outputs[2])) {
-            result.postValue("Mahal kita")
-        } else if ((outputs.isNotEmpty()) and (outputs[1] > outputs[0]) and (outputs[1] > outputs[2])) {
-            result.postValue("Thank you")
-        } else if ((outputs.isNotEmpty()) and (outputs[2] > outputs[0]) and (outputs[2] > outputs[1])) {
-            result.postValue("Peace")
-        } else {
-            result.postValue("")
-        }
-    }
-
-    public fun observeResult() : LiveData<String> {
-        return result
-    }
-
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    public fun getOutputFileOptions(suffix : String?) : ImageCapture.OutputFileOptions {
-        return ImageCapture.OutputFileOptions.Builder (
-            getCacheFile(suffix ?: Constants.IMAGE_EXTENSION)
-        ).build()
-    }
-
-    private fun isExternalStorageWritable() : Boolean {
-        val state : String = Environment.getExternalStorageState()
-        return Environment.MEDIA_MOUNTED == state
-    }
-
-    private fun getCacheFile(suffix : String) : File {
-        val cacheDir : File =
-            if (isExternalStorageWritable().not()) getApplication<Application>().getCacheDir()
-            else getApplication<Application>().getExternalCacheDir()!!
-
-        val filePathFolder : File = File(cacheDir,getApplication<Application>().getString(R.string.camerax))
-        if (!filePathFolder.exists()) filePathFolder.mkdirs()
-
-        val fileName : String = "${System.currentTimeMillis()}${Constants.IMAGE_SUFFIX}"
-
-        val fileValue : File = File.createTempFile(fileName, suffix, filePathFolder)
-
-        return fileValue
-    }
-
-    private fun convertToBitmap(output : ImageCapture.OutputFileResults) {
-        Log.d(TAG,"logImageSaved ${output.getSavedUri()}")
-        bitmap = BitmapFactory.decodeFile(output.getSavedUri()?.path)
-    }
-
+    //endreiogn
     override fun onCleared() {
         super.onCleared()
     }

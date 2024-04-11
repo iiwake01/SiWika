@@ -4,17 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.camera.core.CameraSelector
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.view.LifecycleCameraController
-import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -38,30 +35,30 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.LifecycleOwner
+import androidx.core.view.ViewCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.NavHostFragment
+import com.example.siwika.databinding.ComposeFragmentCameraBinding
+import com.example.siwika.databinding.FragmentCameraBinding
 import com.example.siwika.ui.theme.SiWikaTheme
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
 
@@ -260,103 +257,31 @@ class MainActivity : ComponentActivity() {
                     },
                     icon = {
                         Image(painter = painterResource(id = tabBarItem.icon), contentDescription = viewModel.getCameraTitle())
-                        /*
-                        TabBarIconView(
-                            isSelected = selectedTabIndex == index,
-                            selectedIcon = tabBarItem.selectedIcon,
-                            unselectedIcon = tabBarItem.unselectedIcon,
-                            title = tabBarItem.title,
-                            badgeAmount = tabBarItem.badgeAmount
-                        )
-                        */
                     },
-                    //label = { Text(tabBarItem.title) }
                 )
             }
         }
     }
-    /*
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun TabBarIconView (
-        isSelected : Boolean, selectedIcon : ImageVector, unselectedIcon : ImageVector, title : String, badgeAmount : Int? = null
-    ) {
-        BadgedBox(badge = { TabBarBadgeView(badgeAmount) }) {
-            Icon (
-                imageVector = if (isSelected) {
-                    selectedIcon
-                } else {
-                    unselectedIcon
-                },
-                contentDescription = title
-            )
-        }
-    }
 
-    @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
-    private fun TabBarBadgeView(count : Int? = null) {
-        if (count != null) {
-            Badge {
-                Text(count.toString())
-            }
-        }
-    }
-    */
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     @Composable
     private fun CameraComposable() {
-        val context : Context = LocalContext.current
-        val previewView : PreviewView = remember { PreviewView(context) }
-        val cameraController : LifecycleCameraController = remember { LifecycleCameraController(context) }
-        val lifecycleOwner : LifecycleOwner = LocalLifecycleOwner.current
-        val executor : Executor = remember { Executors.newSingleThreadExecutor() }
-        val result : String by viewModel.observeResult().observeAsState("")
-        cameraController.bindToLifecycle(lifecycleOwner)
-        cameraController.setCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
-        previewView.setController(cameraController)
-        ConstraintLayout {
-            val (preview, text, button,) = createRefs()
-            Box(
-                modifier = Modifier.constrainAs(preview) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-                content = {
-                    AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-                }
-            )
-            Text(modifier = Modifier.constrainAs(text) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },text = result)
-            FloatingActionButton (
-                modifier = Modifier.constrainAs(button) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-                onClick = {
-                    viewModel.resetResult()
-                    cameraController.takePicture (
-                        viewModel.getOutputFileOptions(null),
-                        executor,
-                        object : ImageCapture.OnImageSavedCallback {
-                            override fun onImageSaved(output : ImageCapture.OutputFileResults) {
-                                viewModel.resetResult()
-                                viewModel.predict(output)
-                            }
-                            override fun onError(exc : ImageCaptureException) {
-                                Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
-                            }
-                        }
-                    )
-                },
-                content = { Text(text = stringResource(id = R.string.predict))}
-            )
+       /* AndroidViewBinding(ComposeFragmentCameraBinding::inflate) {
+            val fragment : CameraFragment = fragmentContainerView.getFragment<CameraFragment>()
+        }*/
+        Text (
+            text = "Under Construction",
+        )
+    }
+    @Composable
+    private fun FragmentContainer(fragment: Fragment) {
+        AndroidView(factory = { context ->
+            FrameLayout(context).apply {
+                id = ViewCompat.generateViewId()
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            }
+        }) { view ->
+            (fragment.requireActivity() as AppCompatActivity).supportFragmentManager.beginTransaction().replace(view.id, fragment).commit()
         }
     }
 
