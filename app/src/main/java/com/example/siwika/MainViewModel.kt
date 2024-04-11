@@ -6,8 +6,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.mediapipe.tasks.vision.core.RunningMode
 
-class MainViewModel : AndroidViewModel {
+class MainViewModel : AndroidViewModel, GestureRecognizerHelper.GestureRecognizerListener {
 
     companion object {
         private val TAG = MainViewModel::class.java.getSimpleName()
@@ -35,6 +36,15 @@ class MainViewModel : AndroidViewModel {
         keepSplashAlive = false
         liveCameraGranted = MutableLiveData<Boolean>()
         result = MutableLiveData<String>()
+        gestureRecognizerHelper = GestureRecognizerHelper(
+            context = application,
+            runningMode = RunningMode.LIVE_STREAM,
+            minHandDetectionConfidence = currentMinHandDetectionConfidence,
+            minHandTrackingConfidence = currentMinHandTrackingConfidence,
+            minHandPresenceConfidence = currentMinHandPresenceConfidence,
+            currentDelegate = currentDelegate,
+            gestureRecognizerListener = this
+        )
     }
     //region TopAppBar Title
     public fun getCameraTitle() : String {
@@ -100,6 +110,7 @@ class MainViewModel : AndroidViewModel {
     }
     //endregion
     //region MP Gesture Recognizer
+    public val gestureRecognizerHelper : GestureRecognizerHelper?
     private var _delegate: Int = GestureRecognizerHelper.DELEGATE_CPU
     private var _minHandDetectionConfidence: Float = GestureRecognizerHelper.DEFAULT_HAND_DETECTION_CONFIDENCE
     private var _minHandTrackingConfidence: Float = GestureRecognizerHelper.DEFAULT_HAND_TRACKING_CONFIDENCE
@@ -108,11 +119,31 @@ class MainViewModel : AndroidViewModel {
     val currentMinHandDetectionConfidence: Float get() = _minHandDetectionConfidence
     val currentMinHandTrackingConfidence: Float get() = _minHandTrackingConfidence
     val currentMinHandPresenceConfidence: Float get() = _minHandPresenceConfidence
-    fun setDelegate(delegate: Int) { _delegate = delegate }
-    fun setMinHandDetectionConfidence(confidence: Float) { _minHandDetectionConfidence = confidence }
-    fun setMinHandTrackingConfidence(confidence: Float) { _minHandTrackingConfidence = confidence }
-    fun setMinHandPresenceConfidence(confidence: Float) {
-        _minHandPresenceConfidence = confidence
+    fun setDelegate(delegate: Int?) {
+        if (delegate != null) {
+            _delegate = delegate
+        }
+    }
+    fun setMinHandDetectionConfidence(confidence: Float?) {
+        confidence?.let { _minHandDetectionConfidence = it }
+    }
+    fun setMinHandTrackingConfidence(confidence: Float?) {
+        if (confidence != null) {
+            _minHandTrackingConfidence = confidence
+        }
+    }
+    fun setMinHandPresenceConfidence(confidence: Float?) {
+        if (confidence != null) {
+            _minHandPresenceConfidence = confidence
+        }
+    }
+
+    override fun onResults(resultBundle: GestureRecognizerHelper.ResultBundle) {
+
+    }
+
+    override fun onError(error: String, errorCode: Int) {
+
     }
     //endreiogn
     override fun onCleared() {
