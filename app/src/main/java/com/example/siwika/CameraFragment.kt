@@ -14,10 +14,12 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.R
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.siwika.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -33,7 +35,8 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
 
-    private val fragmentCameraBinding get() = _fragmentCameraBinding!!
+    private val fragmentCameraBinding
+        get() = _fragmentCameraBinding!!
 
     private lateinit var gestureRecognizerHelper: GestureRecognizerHelper
     private val viewModel: MainViewModel by activityViewModels()
@@ -51,6 +54,41 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
+
+    override fun onResume() {
+        super.onResume()
+        // Start the GestureRecognizerHelper again when users come back
+        // to the foreground.
+        backgroundExecutor.execute {
+            if (gestureRecognizerHelper.isClosed()) {
+                gestureRecognizerHelper.setupGestureRecognizer()
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (this::gestureRecognizerHelper.isInitialized) {
+            viewModel.setMinHandDetectionConfidence(gestureRecognizerHelper.minHandDetectionConfidence)
+            viewModel.setMinHandTrackingConfidence(gestureRecognizerHelper.minHandTrackingConfidence)
+            viewModel.setMinHandPresenceConfidence(gestureRecognizerHelper.minHandPresenceConfidence)
+            viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
+
+            // Close the Gesture Recognizer helper and release resources
+            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
+        }
+    }
+
+    override fun onDestroyView() {
+        _fragmentCameraBinding = null
+        super.onDestroyView()
+
+        // Shut down our background executor
+        backgroundExecutor.shutdown()
+        backgroundExecutor.awaitTermination(
+            Long.MAX_VALUE, TimeUnit.NANOSECONDS
+        )
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _fragmentCameraBinding = FragmentCameraBinding.inflate(inflater, container, false)
@@ -100,11 +138,13 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
 
     // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        val cameraProviderFuture =
+            ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener(
             {
                 // CameraProvider
                 cameraProvider = cameraProviderFuture.get()
+
                 // Build and bind the camera use cases
                 bindCameraUseCases()
             }, ContextCompat.getMainExecutor(requireContext())
@@ -114,13 +154,19 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
     // Declare and bind preview, capture and analysis use cases
     @SuppressLint("UnsafeOptInUsageError")
     private fun bindCameraUseCases() {
+
         // CameraProvider
-        val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
-        val cameraSelector = CameraSelector.Builder().requireLensFacing(cameraFacing).build()
+        val cameraProvider = cameraProvider
+            ?: throw IllegalStateException("Camera initialization failed.")
+
+        val cameraSelector =
+            CameraSelector.Builder().requireLensFacing(cameraFacing).build()
+
         // Preview. Only using the 4:3 ratio because this is the closest to our models
         preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
             .build()
+
         // ImageAnalysis. Using RGBA 8888 to match how our models work
         imageAnalyzer =
             ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
@@ -134,14 +180,17 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
                         recognizeHand(image)
                     }
                 }
+
         // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll()
+
         try {
             // A variable number of use-cases can be passed here -
             // camera provides access to CameraControl & CameraInfo
             camera = cameraProvider.bindToLifecycle(
                 this, cameraSelector, preview, imageAnalyzer
             )
+
             // Attach the viewfinder's surface provider to preview use case
             preview?.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider)
         } catch (exc: Exception) {
@@ -165,40 +214,9 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
     // image height/width to scale and place the landmarks properly through
     // OverlayView. Only one result is expected at a time. If two or more
     // hands are seen in the camera frame, only one will be processed.
-
-    override fun onResume() {
-        super.onResume()
-        // Start the GestureRecognizerHelper again when users come back
-        // to the foreground.
-        backgroundExecutor.execute {
-            if (gestureRecognizerHelper.isClosed()) {
-                gestureRecognizerHelper.setupGestureRecognizer()
-            }
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (this::gestureRecognizerHelper.isInitialized) {
-            viewModel.setMinHandDetectionConfidence(gestureRecognizerHelper.minHandDetectionConfidence)
-            viewModel.setMinHandTrackingConfidence(gestureRecognizerHelper.minHandTrackingConfidence)
-            viewModel.setMinHandPresenceConfidence(gestureRecognizerHelper.minHandPresenceConfidence)
-            viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
-            // Close the Gesture Recognizer helper and release resources
-            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
-        }
-    }
-
-    override fun onDestroyView() {
-        _fragmentCameraBinding = null
-        super.onDestroyView()
-        // Shut down our background executor
-        backgroundExecutor.shutdown()
-        backgroundExecutor.awaitTermination(
-            Long.MAX_VALUE, TimeUnit.NANOSECONDS
-        )
-    }
-    override fun onResults(resultBundle: GestureRecognizerHelper.ResultBundle) {
+    override fun onResults(
+        resultBundle: GestureRecognizerHelper.ResultBundle
+    ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
                 // Show result of recognized gesture
@@ -210,6 +228,7 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
                 } else {
                     gestureRecognizerResultAdapter.updateResults(emptyList())
                 }
+
                 // Pass necessary information to OverlayView for drawing on the canvas
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
@@ -224,7 +243,7 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
         }
     }
 
-    override fun onError(error : String, errorCode : Int) {
+    override fun onError(error: String, errorCode: Int) {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
             gestureRecognizerResultAdapter.updateResults(emptyList())
