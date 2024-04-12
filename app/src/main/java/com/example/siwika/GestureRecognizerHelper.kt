@@ -113,28 +113,23 @@ class GestureRecognizerHelper(
     }
 
     // Convert the ImageProxy to MP Image and feed it to GestureRecognizer.
-    fun recognizeLiveStream(
-        imageProxy: ImageProxy,
-    ) {
+    fun recognizeLiveStream(imageProxy : ImageProxy) {
         val frameTime = SystemClock.uptimeMillis()
-
         // Copy out RGB bits from the frame to a bitmap buffer
         val bitmapBuffer = Bitmap.createBitmap(
-            imageProxy.width, imageProxy.height, Bitmap.Config.ARGB_8888
+            imageProxy.width + 1000, imageProxy.height + 1000, Bitmap.Config.ARGB_8888
         )
+
         imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
         imageProxy.close()
-
         val matrix = Matrix().apply {
             // Rotate the frame received from the camera to be in the same direction as it'll be shown
             postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
             // flip image since we only support front camera
             postScale(
                 -1f, 1f, imageProxy.width.toFloat(), imageProxy.height.toFloat()
             )
         }
-
         // Rotate bitmap to match what our model expects
         val rotatedBitmap = Bitmap.createBitmap(
             bitmapBuffer,

@@ -2,6 +2,7 @@ package com.example.siwika
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -138,12 +139,12 @@ class MainViewModel : AndroidViewModel, GestureRecognizerHelper.GestureRecognize
         }
     }
 
-    override fun onResults(resultBundle: GestureRecognizerHelper.ResultBundle) {
-
+    override fun onResults(resultBundle : GestureRecognizerHelper.ResultBundle) {
+        Log.d(TAG, "onResults ${resultBundle.results}")
     }
 
-    override fun onError(error: String, errorCode: Int) {
-
+    override fun onError(error : String, errorCode : Int) {
+        Log.d(TAG, "onError $error $errorCode")
     }
     //endreiogn
     override fun onCleared() {

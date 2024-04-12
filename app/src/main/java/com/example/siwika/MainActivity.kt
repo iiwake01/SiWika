@@ -1,12 +1,9 @@
 package com.example.siwika
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
-import android.view.SurfaceView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -17,9 +14,6 @@ import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.CameraController
@@ -37,7 +31,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -73,7 +66,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.siwika.ui.theme.SiWikaTheme
-import kotlinx.coroutines.Dispatchers
+import com.google.mediapipe.tasks.vision.core.RunningMode
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -285,50 +278,158 @@ class MainActivity : ComponentActivity() {
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     @Composable
     private fun CameraComposable() {
-        /*
-        AndroidViewBinding(ComposeFragmentCameraBinding::inflate) {
-            val fragment : CameraFragment = fragmentContainerView.getFragment<CameraFragment>()
-        }
-        */
-        val context : Context = LocalContext.current
-        val previewView : PreviewView = remember { PreviewView(context) }
-        val overlayView : OverlayView = remember { OverlayView(context, null) }
-        val cameraController : LifecycleCameraController = remember { LifecycleCameraController(context) }
+        val context: Context = LocalContext.current
+        val previewView: PreviewView? = remember { PreviewView(context) }
+        val overlayView: OverlayView = remember { OverlayView(context, null) }
+        val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
         val lifecycleOwner : LifecycleOwner = LocalLifecycleOwner.current
-        /*
-        val imageAnalyzer : ImageAnalysis = ImageAnalysis.Builder()
-          .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-          .setTargetRotation(previewView.display.rotation)
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-            .build()
-        */
-        val executor : ExecutorService = remember { Executors.newSingleThreadExecutor() }
-        //val result : String by viewModel.observeResult().observeAsState("")
+        val executor: Executor = remember { ContextCompat.getMainExecutor(context) }
         cameraController.bindToLifecycle(lifecycleOwner)
         cameraController.setCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
-        cameraController.setImageAnalysisAnalyzer(executor) { imageProxy ->
-            viewModel.gestureRecognizerHelper?.recognizeLiveStream(
-                imageProxy = imageProxy,
-            )
+        val imageAnalysis : ImageAnalysis
+        if (previewView?.display?.rotation != null)
+            imageAnalysis = ImageAnalysis.Builder()
+            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            .setTargetRotation(previewView.display.rotation)
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            // Adjust output format and buffer size based on camera capabilities and processing needs
+            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888) // Consider YUV format for efficiency
+            .build()
+        else
+            imageAnalysis = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                // Adjust output format and buffer size based on camera capabilities and processing needs
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888) // Consider YUV format for efficiency
+                .build()
+        /*
+       imageAnalysis.setAnalyzer(executor) { imageProxy ->
+            try {
+                // Your image processing logic here
+                viewModel.gestureRecognizerHelper?.recognizeLiveStream(imageProxy = imageProxy)
+            } catch (e: Exception) {
+                Log.e("CameraComposable", "Error during image analysis:", e)
+                // Handle potential exceptions related to buffer overflows or processing errors
+            } finally {
+                imageProxy.close() // Always close the image proxy
+            }
         }
+        */
+        cameraController.setImageAnalysisAnalyzer(executor, { imageProxy ->
+            try {
+                // Your image processing logic here
+                viewModel.gestureRecognizerHelper?.recognizeLiveStream(imageProxy = imageProxy)
+                //TODO: Fix java.lang.RuntimeException: Buffer not large enough for pixels!
+            } catch (e: Exception) {
+                Log.e("CameraComposable", "Error during image analysis:", e)
+                // Handle potential exceptions related to buffer overflows or processing errors
+            } finally {
+                imageProxy.close() // Always close the image proxy
+            }
+        })
         cameraController.setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
-        previewView.setController(cameraController)
-        ConstraintLayout {
-            val (preview, overlay, text, button,) = createRefs()
-            Box(
-                modifier = Modifier.constrainAs(preview) {
+        previewView?.setController(cameraController)
+        /*
+        var camera: Camera? = null
+        var preview: Preview? = null
+        var imageAnalyzer: ImageAnalysis? = null
+        previewView.post {
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+            var cameraProvider: ProcessCameraProvider? = null
+            cameraProviderFuture.addListener(
+                {
+                    cameraProvider = cameraProviderFuture.get()
+                    val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
+                    val cameraSelector = CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build()
+                    preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3).setTargetRotation(previewView.display.rotation).build()
+                    imageAnalyzer = ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                        .setTargetRotation(previewView.display.rotation)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                        .build()
+                        .also {
+                            it.setAnalyzer(executor) { imageProxy ->
+                                viewModel.gestureRecognizerHelper?.recognizeLiveStream(
+                                    imageProxy = imageProxy,
+                                )
+                            }
+                        }
+                }, executor
+            )
+            cameraProvider?.unbindAll()
+            try {
+                // A variable number of use-cases can be passed here -
+                // camera provides access to CameraControl & CameraInfo
+                camera = cameraProvider?.bindToLifecycle(
+                    this, CameraSelector.DEFAULT_FRONT_CAMERA, preview, imageAnalyzer
+                )
+                // Attach the viewfinder's surface provider to preview use case
+                preview?.setSurfaceProvider(previewView.surfaceProvider)
+            } catch (exc: Exception) {
+                Log.e(TAG, "Use case binding failed", exc)
+            }
+        }
+        */
+        /*
+        val backgroundExecutor = remember { Executors.newSingleThreadExecutor() }
+        LaunchedEffect(backgroundExecutor) {
+            viewModel.gestureRecognizerHelper?.setupGestureRecognizer()
+        }
+        var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+        var camera by remember { mutableStateOf<Camera?>(null) }
+        var preview by remember { mutableStateOf<Preview?>(null) }
+        var imageAnalyzer by remember { mutableStateOf<ImageAnalysis?>(null) }
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        LaunchedEffect(cameraProviderFuture) {
+            cameraProvider = cameraProviderFuture.get()
+            cameraProvider?.let {
+                val cameraSelector =
+                    CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                        .build()
+                preview = Preview.Builder()
+                    .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    .setTargetRotation(previewView.display.rotation)
+                    .build()
+                imageAnalyzer = ImageAnalysis.Builder()
+                    .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    .setTargetRotation(previewView.display.rotation)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                    .build()
+                    .also { it.setAnalyzer(backgroundExecutor) { imageProxy ->
+                        viewModel.gestureRecognizerHelper?.recognizeLiveStream(
+                            imageProxy = imageProxy,
+                        )
+                    } }
+                try {
+                    camera = it.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageAnalyzer
+                    )
+                    preview?.setSurfaceProvider(previewView.surfaceProvider)
+                } catch (exc: Exception) {
+                    Log.e("CameraPreview", "Use case binding failed", exc)
+                }
+            }
+        }
+        */
+            ConstraintLayout {
+            val (previewRef, overlayRef) = createRefs()
+            Box (
+                modifier = Modifier.constrainAs(previewRef) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
                 },
                 content = {
-                    AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+                    AndroidView(factory = { previewView!! }, modifier = Modifier.fillMaxSize())
                 }
             )
-            Box(
-                modifier = Modifier.constrainAs(overlay) {
+            Box (
+                modifier = Modifier.constrainAs(overlayRef) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -338,13 +439,6 @@ class MainActivity : ComponentActivity() {
                     AndroidView(factory = { overlayView }, modifier = Modifier.fillMaxSize())
                 }
             )
-            /*
-            Text(modifier = Modifier.constrainAs(text) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },text = result)
-            */
         }
     }
 
@@ -366,7 +460,9 @@ class MainActivity : ComponentActivity() {
         viewModel.gestureRecognizerHelper?.clearGestureRecognizer()
     }
 
-    private val requestPermissionLauncher : ActivityResultLauncher<String> = registerForActivityResult( ActivityResultContracts.RequestPermission(),) { isGranted ->
+    private val requestPermissionLauncher : ActivityResultLauncher<String> = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
         Log.d("PERMISSIONS", "Launcher result: " + isGranted.toString())
         if (isGranted) {
             viewModel.grantedCameraPermission()
