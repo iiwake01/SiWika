@@ -225,6 +225,7 @@ class CameraFragment : Fragment(), GestureRecognizerHelper.GestureRecognizerList
                     gestureRecognizerResultAdapter.updateResults(
                         gestureCategories.first()
                     )
+                    Log.d(TAG,"gestureCategories.first() ${gestureCategories.first()}")
                 } else {
                     gestureRecognizerResultAdapter.updateResults(emptyList())
                 }
