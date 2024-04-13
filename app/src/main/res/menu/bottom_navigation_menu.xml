@@ -4,14 +4,16 @@
     <item
         android:id="@+id/camera"
         android:title="@string/camera"
-        android:icon="@drawable/camera"  />
+        android:icon="@drawable/camera"
+        app:showAsAction="collapseActionView" />
     <item
         android:id="@+id/home"
         android:title="@string/home"
-        android:icon="@drawable/home"  />
+        android:icon="@drawable/home"
+        app:showAsAction="collapseActionView" />
     <item
         android:id="@+id/about"
         android:title="@string/about"
         android:icon="@drawable/about"
-        app:showAsAction="always"/>
+        app:showAsAction="collapseActionView" />
 </menu>

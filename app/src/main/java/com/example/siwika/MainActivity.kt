@@ -96,9 +96,9 @@ class MainActivity : AppCompatActivity(),  NavigationBarView.OnItemSelectedListe
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_main)
         setSupportActionBar(binder?.toolbar)
-        binder?.toolbar?.setTitle(TAG)
         binder?.toolbar?.getMenu()?.clear()
         binder?.bottomNavigationView?.setOnItemSelectedListener(this@MainActivity)
+        binder?.bottomNavigationView?.setSelectedItemId(-1)
     }
 
     override fun onNavigationItemSelected(menu : MenuItem): Boolean {
@@ -107,20 +107,23 @@ class MainActivity : AppCompatActivity(),  NavigationBarView.OnItemSelectedListe
             viewModel.checkCameraPermission(
                 permissionResultResultLauncher = requestPermissionLauncher,
                 isGranted = {
+                    binder?.toolbar?.setTitle(getString(R.string.camera))
                     getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, CameraFragment()).commitNow()
                 }, isDenied = {
-                    Toast.makeText(this@MainActivity,"Please Approve Camera Permission!", Toast.LENGTH_LONG);
+                    Toast.makeText(this@MainActivity,"Please Approve Camera Permission!", Toast.LENGTH_LONG).show();
                 }
             )
             true
         } else if (menu.getItemId() == R.id.home) {
             Log.d(TAG, "onNavigationItemSelected search")
+            binder?.toolbar?.setTitle(getString(R.string.home))
             getSupportFragmentManager().beginTransaction()
                 .replace(R.id.frameLayout, HomeFragment())
                 .commitNow()
             true
         } else if (menu.getItemId() == R.id.about) {
             Log.d(TAG, "onNavigationItemSelected edit")
+            binder?.toolbar?.setTitle(getString(R.string.about))
             getSupportFragmentManager().beginTransaction()
                 .replace(R.id.frameLayout, AboutFragment())
                 .commitNow()
