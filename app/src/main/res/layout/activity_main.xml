@@ -28,8 +28,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:background="@color/orange"
             android:elevation="1dp"
-            app:title="@string/app_name"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:title="SiWika"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/constraint_guideline_horizontal_10" />
 
@@ -46,7 +49,8 @@
             android:id="@+id/bottomNavigationView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:labelVisibilityMode="selected"
+            android:background="@color/orange"
+            app:labelVisibilityMode="@color/white"
             app:menu="@menu/bottom_navigation_menu"
             app:itemIconTint="@drawable/selector_bottom_navigation"
             app:itemTextColor="@drawable/selector_bottom_navigation"
